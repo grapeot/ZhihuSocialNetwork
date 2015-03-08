@@ -32,12 +32,13 @@ def crawlAUser(userid):
 
 def extractFollowees(userid):
     """ 
-    Extract the followees of the given user, and output a list of the user ids of the followees.
+    Extract the followees of the given user, and output a set of the user ids of the followees.
     This function assumes the data has been crawled and will directly retrieve the data files to do the analysis.
     """
     with file('{0}/{1}.txt'.format(config.userdir, userid), 'r') as fp:
         content = fp.read()
-    return [1]
+        content = re.sub(r'\\', '', content)
+        return set(re.findall('/people/([^/"]*)"', content))
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
@@ -45,6 +46,8 @@ if __name__ == '__main__':
 Usage: {0} <init user id> <expected num>
 Crawl zhihu to get a user list, starting from the init user id, and end with the user number meets the expected num.
 The credential will be read from credential.py, and the output will be written on stdout.
+
+Example usage: {0} grapeot 100 | tee users.txt
 """.format(sys.argv[0]))
         sys.exit(-1)
 
@@ -58,11 +61,9 @@ The credential will be read from credential.py, and the output will be written o
     while len(userset) < expectedNum:
         userid = q.get()
         crawlAUser(userid)
-        followees = set(extractFollowees(userid))
+        followees = extractFollowees(userid)
         # output
         for f in followees - userset:
             print f
+            q.put(f)
         userset = userset | followees
-
-
-
