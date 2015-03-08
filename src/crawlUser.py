@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import sys, os, subprocess
+import sys 
 import re
 import Queue
-import credential, config, util
+import util
 
 def crawlAUser(userid):
     """ Crawl the followees page of the given userid, and return the crawled result """
