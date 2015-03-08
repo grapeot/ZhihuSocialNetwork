@@ -18,7 +18,7 @@ def crawlAUser(userid):
         content = fp.read()
         hashid = re.search('hash_id&quot;: &quot;([^&]*)&quot;', content).group(1)
         totalNum = int(re.search('<strong>(\d+)</strong><label> 人</label>', content).group(1))
-    # second stage: simulating scroll down the page
+    # second stage: simulate scrolling down the page
     for i in range(20, totalNum, 20):
         commandArgs = ['curl',
                 'http://www.zhihu.com/node/ProfileFolloweesListV2'.format(userid),
