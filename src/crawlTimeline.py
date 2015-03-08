@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import util
 import sys, time, re, json
 
@@ -11,7 +13,7 @@ def crawlTimeline(userid):
     while isContinue:
         content = util.postZhihu(apiurl, params.format(timestamp))
         content = json.loads(content)
-        print content['msg'][1]
+        print content['msg'][1].encode('utf-8')
         # analyze the last timestamp
         remainingMsgNum = int(content['msg'][0])
         if remainingMsgNum < 20:
