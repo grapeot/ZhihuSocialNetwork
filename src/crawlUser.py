@@ -64,6 +64,7 @@ Example usage: {0} grapeot 100 | tee users.txt
         followees = extractFollowees(userid)
         # output
         for f in followees - userset:
-            print f
+            sys.stdout.write(f + '\n')
+            sys.stdout.flush()
             q.put(f)
         userset = userset | followees
