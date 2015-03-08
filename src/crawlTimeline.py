@@ -13,7 +13,9 @@ def crawlTimeline(userid):
     while isContinue:
         content = util.postZhihu(apiurl, params.format(timestamp))
         content = json.loads(content)
-        print content['msg'][1].encode('utf-8')
+        for qa in set(re.findall('/question/([0-9]*)/answer/([0-9]*)', content['msg'][1])):
+            sys.stdout.write('{0} {1}\n'.format(qa[0], qa[1]))
+        sys.stdout.flush()
         # analyze the last timestamp
         remainingMsgNum = int(content['msg'][0])
         if remainingMsgNum < 20:
