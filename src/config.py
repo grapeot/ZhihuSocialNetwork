@@ -1,2 +1,4 @@
+from os import path
+
 datdir = '../dat'
-userdir = datdir + '/' + 'users'
+timelineDir = path.join(datdir, 'timelines')

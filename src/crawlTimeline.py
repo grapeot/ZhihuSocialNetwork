@@ -13,10 +13,10 @@ def crawlTimeline(userid):
     while isContinue:
         content = util.postZhihu(apiurl, params.format(timestamp))
         content = json.loads(content)
-        for qa in set(re.findall('/question/([0-9]*)/answer/([0-9]*)', content['msg'][1])):
-            sys.stdout.write('{0} {1}\n'.format(qa[0], qa[1]))
-        sys.stdout.flush()
-        # analyze the last timestamp
+        answers = re.findall(r'data-time="(\d+)"[^>]*>\s<span[^>]*>[^<]*</span>\s<div[^>]*>\s<a[^>]*>[^<]*</a>[^<]*<a class="question_link" target="_blank" href="/question/(\d+)/answer/(\d+)">', content['msg'][1])
+        mongoToWrite = [{'timestamp': x[0], 'qid': x[1], 'aid': x[2]} for x in answers] 
+        print mongoToWrite
+        # whether to terminate the crawling
         remainingMsgNum = int(content['msg'][0])
         if remainingMsgNum < 20:
             break
