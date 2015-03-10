@@ -9,11 +9,13 @@ def crawlAUser(userid):
     """ Crawl the followees page of the given userid, and return the crawled result """
     # first stage: get hash_id and total number
     content = util.getZhihu('http://www.zhihu.com/people/{0}/followees'.format(userid))
+    # DEBUG
+    #print content
     hashid = re.search('hash_id&quot;: &quot;([^&]*)&quot;', content).group(1)
     totalNum = int(re.search('<strong>(\d+)</strong><label> 人</label>', content).group(1))
     # second stage: simulate scrolling down the page
     for i in range(20, totalNum, 20):
-        contenttmp = util.postZhihu( 'http://www.zhihu.com/node/ProfileFolloweesListV2'.format(userid), 
+        contenttmp = util.postZhihu('http://www.zhihu.com/node/ProfileFolloweesListV2'.format(userid), 
             'method=next&params=%7B%22offset%22%3A{0}%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%22{1}%22%7D&_xsrf=c4b07884cfea379e46cdcb89fcf08cc4'.format(i, hashid))
         content = content + re.sub(r'\\', '', contenttmp)
     return content

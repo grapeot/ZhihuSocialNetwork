@@ -1,2 +1,2 @@
-sudo apt-get install redis-server
-sudo pip install redis
+sudo apt-get install mongodb-server
+sudo pip install pymongo
