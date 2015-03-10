@@ -29,14 +29,11 @@ def crawlTimeline(userid):
         if len(answers) == 0:
             # the "not shown to users outside zhihu" has been toggled
             answers = re.findall(r'data-time="(\d+)"[^>]*>\s*<span[^>]*>[^<]*</span>\s*<div[^>]*>[^<]*知乎用户[^<]*\s*<a class="question_link" target="_blank" href="/question/(\d+)/answer/(\d+)">', content['msg'][1])
-        print answers
         mongoToWrite += [{'timestamp': x[0], 'qid': x[1], 'aid': x[2]} for x in answers] 
-        print mongoToWrite
         # whether to terminate the crawling
         remainingMsgNum = int(content['msg'][0])
         earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite]) if len(mongoToWrite) > 0 else 0
         if remainingMsgNum == 0 or earliestTimestamp <= latestTimestamp:
-            print earliestTimestamp, latestTimestamp
             break
         timestamp = int(re.findall('data-time="([^"]*)"', content['msg'][1])[-1])
 
