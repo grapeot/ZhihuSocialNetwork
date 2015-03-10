@@ -30,8 +30,8 @@ def crawlTimeline(userid):
     if 'likes' not in user:
         user.update({'likes': []})
     # do deduplication
-    #import pdb; pdb.set_trace()
-    #mongoToWrite = list(set(mongoToWrite) - set(user['likes']))
+    oldTimestamps = set([x['timestamp'] for x in user['likes']])
+    mongoToWrite = [x for x in mongoToWrite if x['timestamp'] not in oldTimestamps]
     user['likes'] += mongoToWrite
     users.update({'name': userid}, user)
 
