@@ -18,19 +18,25 @@ def crawlTimeline(userid):
     user = users.find_one({'name': userid})
     if 'likes' not in user:
         user.update({'likes': []})
-        latestTimestamp = 0
-    else:
-        latestTimestamp = max([int(x['timestamp']) for x in user['likes']])
+    latestTimestamp = max([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else 0
 
     while True:
         content = util.postZhihu(apiurl, params.format(timestamp))
         content = json.loads(content)
-        answers = re.findall(r'data-time="(\d+)"[^>]*>\s<span[^>]*>[^<]*</span>\s<div[^>]*>\s<a[^>]*>[^<]*</a>[^<]*<a class="question_link" target="_blank" href="/question/(\d+)/answer/(\d+)">', content['msg'][1])
+        content['msg'][1] = content['msg'][1].encode('utf-8')
+        #print content['msg'][1].encode('utf-8')
+        answers = re.findall(r'data-time="(\d+)"[^>]*>\s*<span[^>]*>[^<]*</span>\s*<div[^>]*>[^<]*<a[^>]*>[^<]*</a>[^<]*<a class="question_link" target="_blank" href="/question/(\d+)/answer/(\d+)">', content['msg'][1])
+        if len(answers) == 0:
+            # the "not shown to users outside zhihu" has been toggled
+            answers = re.findall(r'data-time="(\d+)"[^>]*>\s*<span[^>]*>[^<]*</span>\s*<div[^>]*>[^<]*知乎用户[^<]*\s*<a class="question_link" target="_blank" href="/question/(\d+)/answer/(\d+)">', content['msg'][1])
+        print answers
         mongoToWrite += [{'timestamp': x[0], 'qid': x[1], 'aid': x[2]} for x in answers] 
+        print mongoToWrite
         # whether to terminate the crawling
         remainingMsgNum = int(content['msg'][0])
         earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite]) if len(mongoToWrite) > 0 else 0
-        if remainingMsgNum < 20 or earliestTimestamp <= latestTimestamp:
+        if remainingMsgNum == 0 or earliestTimestamp <= latestTimestamp:
+            print earliestTimestamp, latestTimestamp
             break
         timestamp = int(re.findall('data-time="([^"]*)"', content['msg'][1])[-1])
 
