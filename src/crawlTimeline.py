@@ -18,7 +18,9 @@ def crawlTimeline(userid):
     user = users.find_one({'name': userid})
     if 'likes' not in user:
         user.update({'likes': []})
-    latestTimestamp = max([int(x['timestamp']) for x in user['likes']])
+        latestTimestamp = 0
+    else:
+        latestTimestamp = max([int(x['timestamp']) for x in user['likes']])
 
     while True:
         content = util.postZhihu(apiurl, params.format(timestamp))
@@ -27,8 +29,8 @@ def crawlTimeline(userid):
         mongoToWrite += [{'timestamp': x[0], 'qid': x[1], 'aid': x[2]} for x in answers] 
         # whether to terminate the crawling
         remainingMsgNum = int(content['msg'][0])
-        earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite])
-        if remainingMsgNum < 20 or earliestTimestamp < latestTimestamp:
+        earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite]) if len(mongoToWrite) > 0 else 0
+        if remainingMsgNum < 20 or earliestTimestamp <= latestTimestamp:
             break
         timestamp = int(re.findall('data-time="([^"]*)"', content['msg'][1])[-1])
 
