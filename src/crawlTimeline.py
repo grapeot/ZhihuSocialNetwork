@@ -5,7 +5,7 @@ import sys, time, re, json
 from pymongo import MongoClient
 
 def crawlTimeline(userid):
-    """ Crawl the timeline of the user, and return the string. """
+    """ Crawl the timeline of the user, and store the result in mongodb. """
     apiurl = 'http://www.zhihu.com/people/{0}/activities'.format(userid)
     params = 'start={0}&_xsrf=c4b07884cfea379e46cdcb89fcf08cc4'
     timestamp = int(time.time())
