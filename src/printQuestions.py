@@ -6,7 +6,7 @@ from pymongo import MongoClient
 def printQuestions():
     client = MongoClient()
     setQidsFromUsers = set( [ y['qid'] for x in client['zhihu']['users'].find() for y in x['likes'] ] )
-    setQidsFromQuestions = set( [x['qid'] for x in client['zhihu']['questions'].find() ] )
+    setQidsFromQuestions = set( [x['id'] for x in client['zhihu']['questions'].find() ] )
     for qid in setQidsFromUsers - setQidsFromQuestions:
         print qid
 

@@ -13,7 +13,7 @@ def crawlQuestion(qid):
     timestamp = int(time.time())
     title = re.search('<h2 class="zm-item-title zm-editable-content">([^<]*)', content).group(1).strip()
     print { 'id': qid, 'title': title, 'topicids': topicids, 'lastCrawlTimestamp': timestamp }
-    client['zhihu']['questions'].insert_one({ 'id': qid, 'title': title, 'topicids': topicids, 'lastCrawlTimestamp': timestamp })
+    client['zhihu']['questions'].update({ 'id': qid }, { 'id': qid, 'title': title, 'topicids': topicids, 'lastCrawlTimestamp': timestamp }, upsert=True)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
