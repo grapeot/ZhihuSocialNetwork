@@ -1,2 +1,2 @@
-sudo apt-get install mongodb-server
-sudo pip install pymongo
+sudo apt-get install mongodb-server python-beautifulsoup
+sudo pip install pymongo beautifulsoap
