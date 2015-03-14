@@ -19,9 +19,13 @@ def crawlTimeline(userid):
     if 'likes' not in user:
         user.update({'likes': []})
     latestTimestamp = max([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else timestamp
+    latestTimestamp2 = min([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else timestamp
 
     while True:
-        content = util.postZhihu(apiurl, params.format(timestamp), includeCookie=False)
+        try:
+            content = util.postZhihu(apiurl, params.format(timestamp), includeCookie=False)
+        except:
+            break
         content = json.loads(content)
         content['msg'][1] = content['msg'][1].encode('utf-8')
         answers = re.findall(r'data-time="(\d+)"[^>]*>\s*<span[^>]*>[^<]*</span>\s*<div[^>]*>[^<]*<a[^>]*>[^<]*</a>[^<]*<a class="question_link" target="_blank" href="/question/(\d+)/answer/(\d+)">', content['msg'][1])
@@ -33,11 +37,16 @@ def crawlTimeline(userid):
         # whether to terminate the crawling
         remainingMsgNum = int(content['msg'][0])
         earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite]) if len(mongoToWrite) > 0 else 0
-        if remainingMsgNum == 0 or earliestTimestamp <= latestTimestamp:
-            if earliestTimestamp <= latestTimestamp:
-                print '[{0}] early termination at {1}'.format(userid, latestTimestamp)
+        if remainingMsgNum == 0:
             break
+        if earliestTimestamp <= latestTimestamp:
+            print '[{0}] early termination at {1}'.format(userid, latestTimestamp)
+            print '[{0}] checking before {1}...'.format(userid, latestTimestamp2)
+            timestamp = latestTimestamp2
+            latestTimestamp = 0
         timestamp = int(re.findall('data-time="([^"]*)"', content['msg'][1])[-1])
+        sys.stdout.write('.')
+        sys.stdout.flush()
 
     # update the database
     # do deduplication
@@ -52,9 +61,9 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         sys.stderr.write("""
 Usage: {0} <user id> 
-Crawl zhihu to get the user's activities. The credential will be read from credential.py, and the output will be written on stdout.
+Crawl zhihu to get the user's activities. The credential will be read from credential.py, and the output will be written to mongodb.
 
-Example usage: {0} grapeot | tee grapeot.txt
+Example usage: {0} grapeot 
 """.format(sys.argv[0]))
         sys.exit(-1)
 
