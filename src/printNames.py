@@ -6,17 +6,10 @@ import sys, time
 
 def printNames(days=3):
     client = MongoClient()
-    users = client['zhihu']['users'].find()
-    userstmp = [ {
-        'name': x['name'], 
-        'mtimestamp': 0 if 'likes' not in x else
-            0 if len(x['likes']) == 0 else
-                max([int(y['timestamp']) for y in x['likes']])
-        } for x in users]
-    currentTime = int(time.time())
-    users = [x['name'] for x in userstmp if currentTime - x['mtimestamp'] > days * 24 * 3600]
+    targetTimeStamp = int(time.time()) - days * 24 * 3600
+    users = client['zhihu']['users'].find({ 'lastCrawlTimestamp': { '$lt': targetTimeStamp } })
     for user in users:
-        print user
+        print user['name']
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

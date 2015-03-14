@@ -44,6 +44,7 @@ def crawlTimeline(userid):
     oldTimestamps = set([x['timestamp'] for x in user['likes']])
     mongoToWrite = [x for x in mongoToWrite if x['timestamp'] not in oldTimestamps]
     user['likes'] += mongoToWrite
+    user['lastCrawlTimestamp'] = int(time.time())
     users.update({'name': userid}, user)
     sys.stdout.write('[{1}] {0} new entries written to the database.\n'.format(len(mongoToWrite), userid))
 
