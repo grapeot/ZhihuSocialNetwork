@@ -12,8 +12,10 @@ def crawlQuestion(qid):
     topicids = re.findall(r'"/topic/(\d+)"', content)
     timestamp = int(time.time())
     title = re.search('<h2 class="zm-item-title zm-editable-content">([^<]*)', content).group(1).strip()
-    print { 'id': qid, 'title': title, 'topicids': topicids, 'lastCrawlTimestamp': timestamp }
-    client['zhihu']['questions'].update({ 'id': qid }, { 'id': qid, 'title': title, 'topicids': topicids, 'lastCrawlTimestamp': timestamp }, upsert=True)
+    topAnswerIds = list(set(re.findall('"/question/{0}/answer/(\d+)"'.format(qid), content)))
+    toInsert = { 'id': qid, 'title': title, 'topicIds': topicids, 'lastCrawlTimestamp': timestamp, 'topAnswerIds': topAnswerIds }
+    print toInsert
+    client['zhihu']['questions'].update({ 'id': qid }, toInsert, upsert=True)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
