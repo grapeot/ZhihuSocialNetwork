@@ -13,7 +13,7 @@ def crawlQuestion(qid):
     content = util.getZhihu(apiurl.format(qid))
 
     # process the question itself
-    topicids = re.findall(r'"/topic/(\d+)"', content)
+    topicids = [int(x) for x in re.findall(r'"/topic/(\d+)"', content)]
     timestamp = int(time.time())
     title = re.search('<h2 class="zm-item-title [^"]*">([^<]*)', content).group(1).strip()
     dom = BeautifulSoup(content)
