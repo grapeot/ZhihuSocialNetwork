@@ -17,7 +17,21 @@ def crawlQuestion(qid):
     timestamp = int(time.time())
     title = re.search('<h2 class="zm-item-title zm-editable-content">([^<]*)', content).group(1).strip()
     topAnswerIds = [int(x) for x in re.findall('"/question/{0}/answer/(\d+)"'.format(qid), content)]
-    toInsert = { 'id': qid, 'title': title, 'topicIds': topicids, 'lastCrawlTimestamp': timestamp, 'topAnswerIds': topAnswerIds }
+    visitsCount = int(re.search('"visitsCount" content="(\d+)"', content).group(1))
+    # special handling of follower
+    followerNumber = int(re.search(
+        '<a href="/question/{0}/followers"><strong>(\d+)</strong></a>'.format(qid), 
+        util.getZhihu('http://www.zhihu.com/question/{0}/followers'.format(qid))
+    ).group(1))
+    toInsert = {
+        'id': qid,
+        'title': title,
+        'topicIds': topicids,
+        'lastCrawlTimestamp': timestamp,
+        'topAnswerIds': topAnswerIds,
+        'followerNumber': followerNumber,
+        'visitsCount': visitsCount 
+    }
     client['zhihu']['questions'].update({ 'id': qid }, toInsert, upsert=True)
 
     # process the answers
@@ -34,11 +48,11 @@ def crawlQuestion(qid):
             return match.group(1)
         return 'UNKNOWN' # invisible
     authors = [parseAuthor(str(x)) for x in authorTexts]
-    print len(topAnswerIds), topAnswerIds
-    print len(upvotes), upvotes
-    print len(dateCreateds), dateCreateds
-    print len(scores), scores
-    print len(authors), authors
+    #print len(topAnswerIds), topAnswerIds
+    #print len(upvotes), upvotes
+    #print len(dateCreateds), dateCreateds
+    #print len(scores), scores
+    #print len(authors), authors
     toInsert = []
     for i in range(len(upvotes)):
         toInsert.append({
@@ -50,8 +64,11 @@ def crawlQuestion(qid):
             'score': scores[i],
             'author': authors[i]
         })
+    bulk = client['zhihu']['answers'].initialize_ordered_bulk_op()
     for r in toInsert:
-        client['zhihu']['answers'].update({ 'id': r['id'] }, r, upsert=True)
+        bulk.find({'id': r['id']}).remove()
+        bulk.insert(r)
+    bulk.execute()
     print '[{0}] complete, {1} answers updated.'.format(qid, len(upvotes))
 
 if __name__ == '__main__':
