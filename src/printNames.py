@@ -9,7 +9,7 @@ def printNames(days=3):
     targetTimeStamp = int(time.time()) - days * 24 * 3600
     users = client['zhihu']['users'].find({ 'lastCrawlTimestamp': { '$lt': targetTimeStamp } })
     for user in users:
-        print user['name']
+        print user['name'].encode('utf-8')
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
