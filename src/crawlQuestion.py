@@ -25,7 +25,7 @@ def crawlQuestion(qid):
         util.getZhihu('http://www.zhihu.com/question/{0}/followers'.format(qid))
     ).group(1))
     toInsert = {
-        'id': qid,
+        'id': int(qid),
         'title': title,
         'topicIds': topicids,
         'lastCrawlTimestamp': timestamp,
@@ -33,7 +33,7 @@ def crawlQuestion(qid):
         'followerNumber': followerNumber,
         'visitsCount': visitsCount 
     }
-    client['zhihu']['questions'].update({ 'id': qid }, toInsert, upsert=True)
+    client['zhihu']['questions'].update({ 'id': int(qid) }, toInsert, upsert=True)
 
     # process the answers
     upvotes = [int(x) for x in re.findall(r'data-votecount="(\d+)"', content)]
@@ -62,7 +62,7 @@ def crawlQuestion(qid):
     for i in range(len(upvotes)):
         toInsert.append({
             'id': topAnswerIds[i],
-            'qid': qid,
+            'qid': int(qid),
             'lastQuestionCrawlTimestamp': timestamp,
             'upvote': upvotes[i],
             'dateCreated': dateCreateds[i],
