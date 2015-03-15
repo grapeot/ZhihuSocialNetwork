@@ -2,7 +2,7 @@
 
 import util
 import sys, time, re
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from pymongo import MongoClient
 
 def crawlQuestion(qid):
@@ -15,8 +15,9 @@ def crawlQuestion(qid):
     # process the question itself
     topicids = re.findall(r'"/topic/(\d+)"', content)
     timestamp = int(time.time())
-    title = re.search('<h2 class="zm-item-title zm-editable-content">([^<]*)', content).group(1).strip()
-    topAnswerIds = [int(x) for x in re.findall('"/question/{0}/answer/(\d+)"'.format(qid), content)]
+    title = re.search('<h2 class="zm-item-title [^"]*">([^<]*)', content).group(1).strip()
+    dom = BeautifulSoup(content)
+    topAnswerIds = [int(re.search('"/question/{0}/answer/(\d+)"'.format(qid), str(x)).group(1)) for x in dom.findAll('a', class_='answer-date-link')]
     visitsCount = int(re.search('"visitsCount" content="(\d+)"', content).group(1))
     # special handling of follower
     followerNumber = int(re.search(
@@ -48,6 +49,10 @@ def crawlQuestion(qid):
             return match.group(1)
         return 'UNKNOWN' # invisible
     authors = [parseAuthor(str(x)) for x in authorTexts]
+    assert len(upvotes) == len(topAnswerIds)
+    assert len(upvotes) == len(authors)
+    assert len(upvotes) == len(dateCreateds)
+    assert len(upvotes) == len(scores) 
     #print len(topAnswerIds), topAnswerIds
     #print len(upvotes), upvotes
     #print len(dateCreateds), dateCreateds
