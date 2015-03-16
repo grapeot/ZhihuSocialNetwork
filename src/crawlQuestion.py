@@ -2,7 +2,6 @@
 
 import util
 import sys, time, re
-from bs4 import BeautifulSoup
 from pymongo import MongoClient
 
 def crawlQuestion(qid):
@@ -16,8 +15,7 @@ def crawlQuestion(qid):
     topicids = [int(x) for x in re.findall(r'"/topic/(\d+)"', content)]
     timestamp = int(time.time())
     title = re.search('<h2 class="zm-item-title [^"]*">([^<]*)', content).group(1).strip()
-    dom = BeautifulSoup(content)
-    topAnswerIds = [int(re.search('"/question/{0}/answer/(\d+)"'.format(qid), str(x)).group(1)) for x in dom.findAll('a', class_='answer-date-link')]
+    topAnswerIds = re.findall(r'<a class="answer-date-link[^"]*" .*? href="/question/{0}/answer/(\d+)"'.format(qid), content)
     visitsCount = int(re.search('"visitsCount" content="(\d+)"', content).group(1))
     # special handling of follower
     followerNumber = int(re.search(
@@ -39,7 +37,10 @@ def crawlQuestion(qid):
     upvotes = [int(x) for x in re.findall(r'data-votecount="(\d+)"', content)]
     dateCreateds = [int(x) for x in re.findall(r'data-created="(\d+)"', content)]
     scores = [float(x) for x in re.findall(r'data-score="([0-9+-.]*)"', content)]
-    authorTexts = BeautifulSoup(content).findAll('h3', { 'class': 'zm-item-answer-author-wrap' })
+    # special processing for the authors
+    authorStarts = [x.start() for x in re.finditer(r'<h3 class="zm-item-answer-author-wrap">', content)]
+    authorEnds = [x + re.search(r'</h3>', content[x:-1]).start() for x in authorStarts]
+    authorTexts = [content[s:e] for s, e in zip(authorStarts, authorEnds)]
     def parseAuthor(text):
         match = re.search('/people/([^"]*)', text)
         if match: # visible users
