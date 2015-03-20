@@ -14,13 +14,15 @@ def crawlTopicTopQuestions(tid):
     # initialize the processing
     questionIds = [int(x) for x in re.findall(r'target="_blank" href="/question/(\d+)"', content)]
     bulk = client['zhihu']['questions']
-    totalQidNum = len(questionIds)
     def upsertQuestions(qids):
+        totalQidNum = 0
         for qid in qids:
             c = client['zhihu']['questions'].find({'id': qid}).count()
             if 0 == c:
                 bulk.insert({'id': qid, 'lastCrawlTimestamp': 0}) # never crawled
-    upsertQuestions(questionIds)
+                totalQidNum += 1
+        return totalQidNum
+    totalQidNum = upsertQuestions(questionIds)
 
     match = re.search(r'>(\d+)</a></span>\s*<span><a href="\?page=2">下一页</a></span>', content)
     lastPage = int(match.group(1)) if match else 0
@@ -29,7 +31,7 @@ def crawlTopicTopQuestions(tid):
     for p in range(2, lastPage + 1):
         content = util.getZhihu(apiurl + '?page={0}'.format(p), includeCookie=False)
         questionIds = [int(x) for x in re.findall(r'target="_blank" href="/question/(\d+)"', content)]
-        upsertQuestions(questionIds)
+        totalQidNum += upsertQuestions(questionIds)
         sys.stdout.write('.')
         sys.stdout.flush()
         totalQidNum += len(questionIds)

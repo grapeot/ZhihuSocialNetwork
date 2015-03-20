@@ -10,6 +10,7 @@ def crawlQuestion(qid):
     apiurl = 'http://www.zhihu.com/question/{0}'.format(qid)
     client = MongoClient()
     content = util.getZhihu(apiurl.format(qid))
+    #file('sb.txt', 'w').write(content)
 
     # process the question itself
     topicids = [int(x) for x in re.findall(r'"/topic/(\d+)"', content)]
