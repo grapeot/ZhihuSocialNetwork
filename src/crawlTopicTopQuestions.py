@@ -12,14 +12,8 @@ def crawlTopicTopQuestions(tid):
     client = MongoClient()
 
     # initialize the processing
-    qidsToWrite = []
     questionIds = [int(x) for x in re.findall(r'target="_blank" href="/question/(\d+)"', content)]
-    def upsertQuestions(qids):
-        for qid in qids:
-            c = client['zhihu']['questions'].find({'id': qid}).count()
-            if 0 == c:
-                qidsToWrite.append(qid)
-    totalQidNum = upsertQuestions(questionIds)
+    qidsToWrite = questionIds
 
     match = re.search(r'>(\d+)</a></span>\s*<span><a href="\?page=2">下一页</a></span>', content)
     lastPage = int(match.group(1)) if match else 0
@@ -28,12 +22,10 @@ def crawlTopicTopQuestions(tid):
     for p in range(2, lastPage + 1):
         content = util.getZhihu(apiurl + '?page={0}'.format(p), includeCookie=False)
         questionIds = [int(x) for x in re.findall(r'target="_blank" href="/question/(\d+)"', content)]
-        totalQidNum += upsertQuestions(questionIds)
+        qidsToWrite += questionIds
         sys.stdout.write('.')
         sys.stdout.flush()
-    topic = client['zhihu']['topics'].find({'id': tid})
-    topic['topQuestionIds'] = qidsToWrite
-    client['zhihu']['topics'].update({'id': tid}, topic)
+    client['zhihu']['topics'].update({'id': tid}, {'$set': {'topQuestionIds': qidsToWrite} })
     print '[{0}] finishes. {1} questions updated.'.format(tid, len(qidsToWrite))
 
 if __name__ == '__main__':
