@@ -1,7 +1,7 @@
 import urllib2
 import credential
 
-timeout = 10
+timeout = 30
 
 def getZhihu(url, includeCookie=True):
     req = urllib2.Request(url)
