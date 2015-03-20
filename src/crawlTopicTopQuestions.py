@@ -12,16 +12,13 @@ def crawlTopicTopQuestions(tid):
     client = MongoClient()
 
     # initialize the processing
+    qidsToWrite = []
     questionIds = [int(x) for x in re.findall(r'target="_blank" href="/question/(\d+)"', content)]
-    bulk = client['zhihu']['questions']
     def upsertQuestions(qids):
-        totalQidNum = 0
         for qid in qids:
             c = client['zhihu']['questions'].find({'id': qid}).count()
             if 0 == c:
-                bulk.insert({'id': qid, 'lastCrawlTimestamp': 0}) # never crawled
-                totalQidNum += 1
-        return totalQidNum
+                qidsToWrite.append(qid)
     totalQidNum = upsertQuestions(questionIds)
 
     match = re.search(r'>(\d+)</a></span>\s*<span><a href="\?page=2">下一页</a></span>', content)
@@ -34,8 +31,10 @@ def crawlTopicTopQuestions(tid):
         totalQidNum += upsertQuestions(questionIds)
         sys.stdout.write('.')
         sys.stdout.flush()
-        totalQidNum += len(questionIds)
-    print '[{0}] finishes. {1} questions updated.'.format(tid, totalQidNum)
+    topic = client['zhihu']['topics'].find({'id': tid})
+    topic['topQuestionIds'] = qidsToWrite
+    client['zhihu']['topics'].update({'id': tid}, topic)
+    print '[{0}] finishes. {1} questions updated.'.format(tid, len(qidsToWrite))
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

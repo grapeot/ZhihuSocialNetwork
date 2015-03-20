@@ -12,7 +12,7 @@ def crawlTopic(tid):
     content = util.getZhihu(apiurl.format(tid), includeCookie=False)
 
     title = re.search(r'id="zh-topic-title">\s*<h1[^>]*>(.*?)</h1>', content).group(1)
-    followerNumber = int(re.search(r'<strong>(\d+)</strong> 人关注了该话题', content).group(1))
+    followerNumber = 0 if re.search('还没有人关注该话题', content) else int(re.search(r'<strong>(\d+)</strong> 人关注了该话题', content).group(1))
     match = re.search(r'<div class="zm-editable-content"[^>]*>(.*?)</div>', content)
     description = match.group(1) if match else ''
     timestamp = int(time.time())
