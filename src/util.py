@@ -1,18 +1,14 @@
-import urllib2
 import credential
+import requests
 
 timeout = 30
 
 def getZhihu(url, includeCookie=True):
-    req = urllib2.Request(url)
-    if includeCookie:
-        req.add_header('Cookie', credential.cookies)
-    res = urllib2.urlopen(req, timeout=timeout)
-    return res.read()
+    cookies = credential.cookies if includeCookie else ''
+    r = requests.get(url, cookies=cookies)
+    return r.content
 
 def postZhihu(url, data, includeCookie=True):
-    req = urllib2.Request(url, data=data)
-    if includeCookie:
-        req.add_header('Cookie', credential.cookies)
-    res = urllib2.urlopen(req, timeout=timeout)
-    return res.read()
+    cookies = credential.cookies if includeCookie else ''
+    r = requests.post(url, cookies=cookies, data=data)
+    return r.content
