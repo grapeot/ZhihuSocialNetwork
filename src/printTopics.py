@@ -8,7 +8,7 @@ def printQuestions(days):
     client = MongoClient()
     targetTimeStamp = int(time.time()) - days * 24 * 3600
     setTidsFromQuestions = set( [ y for x in client['zhihu']['questions'].find({'topicIds': {'$exists': 1}}, {'topicIds': 1}) for y in x['topicIds'] ] )
-    setTidsFromTopics = set( [x['id'] for x in client['zhihu']['topics'].find({}, {'id': 1, 'lastCrawlTimestamp': 1}) if x['lastCrawlTimestamp'] > targetTimeStamp ] )
+    setTidsFromTopics = set( [x['id'] for x in client['zhihu']['topics'].find({'lastCrawlTimestamp': {'$gt': targetTimeStamp}}, {'id': 1})] )
     for tid in setTidsFromQuestions - setTidsFromTopics:
         print tid
 
