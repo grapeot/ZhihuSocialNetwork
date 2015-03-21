@@ -7,7 +7,7 @@ import sys, time
 def printNames(days=3):
     client = MongoClient()
     targetTimeStamp = int(time.time()) - days * 24 * 3600
-    users = client['zhihu']['users'].find({ 'lastCrawlTimestamp': { '$gt': targetTimeStamp } })
+    users = client['zhihu']['users'].find({ 'lastCrawlTimestamp': { '$lt': targetTimeStamp } })
     for user in users:
         print user['name'].encode('utf-8')
 

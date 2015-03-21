@@ -21,6 +21,7 @@ def crawlTimeline(userid):
     latestTimestamp = max([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else timestamp
     latestTimestamp2 = min([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else timestamp
 
+    oldTimestamp = 0
     while True:
         try:
             content = util.postZhihu(apiurl, params.format(timestamp), includeCookie=False)
@@ -37,14 +38,16 @@ def crawlTimeline(userid):
         # whether to terminate the crawling
         remainingMsgNum = int(content['msg'][0])
         earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite]) if len(mongoToWrite) > 0 else 0
-        if remainingMsgNum == 0:
-            break
+        #print remainingMsgNum, timestamp, latestTimestamp, earliestTimestamp
         if earliestTimestamp <= latestTimestamp:
             print '[{0}] early termination at {1}'.format(userid, latestTimestamp)
             print '[{0}] checking before {1}...'.format(userid, latestTimestamp2)
             timestamp = latestTimestamp2
             latestTimestamp = 0
+        oldTimestamp = timestamp
         timestamp = int(re.findall('data-time="([^"]*)"', content['msg'][1])[-1])
+        if oldTimestamp == timestamp:
+            break
         sys.stdout.write('.')
         sys.stdout.flush()
 
