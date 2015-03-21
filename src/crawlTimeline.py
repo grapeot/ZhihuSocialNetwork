@@ -38,12 +38,18 @@ def crawlTimeline(userid):
         # whether to terminate the crawling
         remainingMsgNum = int(content['msg'][0])
         earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite]) if len(mongoToWrite) > 0 else 0
-        #print remainingMsgNum, timestamp, latestTimestamp, earliestTimestamp
-        if earliestTimestamp <= latestTimestamp:
+        #print 'ts = ', timestamp, ' oldts = ', oldTimestamp, ' latest = ', latestTimestamp, ' earlest = ', earliestTimestamp
+        if remainingMsgNum == 0:
+            break
+        if earliestTimestamp < latestTimestamp:
             print '[{0}] early termination at {1}'.format(userid, latestTimestamp)
             print '[{0}] checking before {1}...'.format(userid, latestTimestamp2)
+            oldTimestamp = timestamp
             timestamp = latestTimestamp2
             latestTimestamp = 0
+            if oldTimestamp == timestamp:
+                break
+            continue
         oldTimestamp = timestamp
         timestamp = int(re.findall('data-time="([^"]*)"', content['msg'][1])[-1])
         if oldTimestamp == timestamp:
