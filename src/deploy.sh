@@ -1,4 +1,5 @@
 sudo apt-get install mongodb-server python-bs4 python-numpy python-scipy python-requests 
+sudo apt-get install python-lxml python-cssselect
 pip install -U pymongo beautifulsoap
 
 # install scikit-learn

@@ -2,6 +2,8 @@
 
 import util
 import sys, time, re
+from lxml import html, etree
+from lxml.cssselect import CSSSelector
 from pymongo import MongoClient
 
 def crawlQuestion(qid):
@@ -51,15 +53,25 @@ def crawlQuestion(qid):
             return match.group(1)
         return 'UNKNOWN' # invisible
     authors = [parseAuthor(str(x)) for x in authorTexts]
+    # answers
+    def parseAnswerContents(content):
+        # content must be a unicode
+        parser = html.HTMLParser(encoding='utf-8')
+        root = html.document_fromstring(content, parser=parser)
+        sel = CSSSelector('div.zm-editable-content.clearfix')
+        def processEachAnswer(answer):
+            answerContent = etree.tostring(answer, encoding='utf-8')
+            answerContent = re.sub(r'^<div class=" zm-editable-content clearfix">', '', answerContent)
+            answerContent = re.sub(r'\s*</div>\s*$', '', answerContent)
+            return answerContent
+        return [processEachAnswer(a) for a in sel(root)]
+    answerContents = parseAnswerContents(content)
+
+    assert len(upvotes) == len(answerContents)
     assert len(upvotes) == len(topAnswerIds)
     assert len(upvotes) == len(authors)
     assert len(upvotes) == len(dateCreateds)
     assert len(upvotes) == len(scores) 
-    #print len(topAnswerIds), topAnswerIds
-    #print len(upvotes), upvotes
-    #print len(dateCreateds), dateCreateds
-    #print len(scores), scores
-    #print len(authors), authors
     toInsert = []
     for i in range(len(upvotes)):
         toInsert.append({
@@ -69,7 +81,8 @@ def crawlQuestion(qid):
             'upvote': upvotes[i],
             'dateCreated': dateCreateds[i],
             'score': scores[i],
-            'author': authors[i]
+            'author': authors[i],
+            'content': answerContents[i]
         })
     bulk = client['zhihu']['answers'].initialize_ordered_bulk_op()
     for r in toInsert:
