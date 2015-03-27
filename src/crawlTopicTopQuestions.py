@@ -42,6 +42,7 @@ def crawlTopicTopQuestions(tid):
         'topQuestionIds': qidsToWrite
     }
     print '[{0}] finishes. {1} questions updated.'.format(tid, len(qidsToWrite))
+    client['zhihu']['topics'].remove({'id': toInsert['id']})
     client['zhihu']['topics'].insert(toInsert)
 
 if __name__ == '__main__':
