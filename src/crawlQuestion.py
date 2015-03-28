@@ -72,23 +72,21 @@ def crawlQuestion(qid):
     assert len(upvotes) == len(authors)
     assert len(upvotes) == len(dateCreateds)
     assert len(upvotes) == len(scores) 
-    toInsert = []
-    for i in range(len(upvotes)):
-        toInsert.append({
-            'id': topAnswerIds[i],
-            'qid': int(qid),
-            'lastQuestionCrawlTimestamp': timestamp,
-            'upvote': upvotes[i],
-            'dateCreated': dateCreateds[i],
-            'score': scores[i],
-            'author': authors[i],
-            'content': answerContents[i]
-        })
-    bulk = client['zhihu']['answers'].initialize_ordered_bulk_op()
+    toInsert = [{
+        'id': topAnswerIds[i],
+        'qid': int(qid),
+        'lastQuestionCrawlTimestamp': timestamp,
+        'upvote': upvotes[i],
+        'dateCreated': dateCreateds[i],
+        'score': scores[i],
+        'author': authors[i],
+        'content': answerContents[i]
+    } for i in range(len(upvotes))]
+    #bulk = client['zhihu']['answers'].initializeOrderedBulkOp()
     for r in toInsert:
-        bulk.find({'id': r['id']}).remove()
-        bulk.insert(r)
-    bulk.execute()
+        client['zhihu']['answers'].remove({'id': r['id']})
+        client['zhihu']['answers'].insert(r)
+    #bulk.execute()
     print '[{0}] complete, {1} answers updated.'.format(qid, len(upvotes))
 
 if __name__ == '__main__':
