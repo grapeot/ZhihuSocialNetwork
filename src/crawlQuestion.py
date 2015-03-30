@@ -18,7 +18,7 @@ def crawlQuestion(qid):
     topicids = [int(x) for x in re.findall(r'"/topic/(\d+)"', content)]
     timestamp = int(time.time())
     title = re.search('<h2 class="zm-item-title [^"]*">([^<]*)', content).group(1).strip()
-    topAnswerIds = re.findall(r'<a class="answer-date-link[^"]*" .*? href="/question/{0}/answer/(\d+)"'.format(qid), content)
+    topAnswerIds = [int(x) for x in re.findall(r'<a class="answer-date-link[^"]*" .*? href="/question/{0}/answer/(\d+)"'.format(qid), content)]
     visitsCount = int(re.search('"visitsCount" content="(\d+)"', content).group(1))
     # special handling of follower
     followerNumber = int(re.search(
@@ -73,18 +73,20 @@ def crawlQuestion(qid):
     assert len(upvotes) == len(dateCreateds)
     assert len(upvotes) == len(scores) 
     toInsert = [{
-        'id': topAnswerIds[i],
+        'id': int(topAnswerIds[i]),
         'qid': int(qid),
         'lastQuestionCrawlTimestamp': timestamp,
         'upvote': upvotes[i],
         'dateCreated': dateCreateds[i],
         'score': scores[i],
         'author': authors[i],
-        'content': answerContents[i]
+        'content': answerContents[i],
+        'segmented': False
     } for i in range(len(upvotes))]
     #bulk = client['zhihu']['answers'].initializeOrderedBulkOp()
     for r in toInsert:
         client['zhihu']['answers'].remove({'id': r['id']})
+        client['zhihu']['answers'].remove({'id': int(r['id'])})
         client['zhihu']['answers'].insert(r)
     #bulk.execute()
     print '[{0}] complete, {1} answers updated.'.format(qid, len(upvotes))

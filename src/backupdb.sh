@@ -1,5 +1,5 @@
-mongodump --out ../dat/mongodb
+\rm -rf ~/instance/mongobackup
+mongodump --out ~/instance/mongobackup
 cd ../dat
 rm mongodb.zip
-zip -r mongodb.zip mongodb
-rm -rf mongodb
+zip -r mongodb.zip ~/instance/mongobackup
