@@ -72,7 +72,7 @@ def crawlQuestion(qid):
     assert len(upvotes) == len(authors)
     assert len(upvotes) == len(dateCreateds)
     assert len(upvotes) == len(scores) 
-    toInsert = [{
+    toInsert = [{ '$set': {
         'id': int(topAnswerIds[i]),
         'qid': int(qid),
         'lastQuestionCrawlTimestamp': timestamp,
@@ -81,13 +81,14 @@ def crawlQuestion(qid):
         'score': scores[i],
         'author': authors[i],
         'content': answerContents[i],
-        'segmented': False
+        'segmented': False }
     } for i in range(len(upvotes))]
     #bulk = client['zhihu']['answers'].initializeOrderedBulkOp()
     for r in toInsert:
-        client['zhihu']['answers'].remove({'id': r['id']})
-        client['zhihu']['answers'].remove({'id': int(r['id'])})
-        client['zhihu']['answers'].insert(r)
+        client['zhihu']['answers'].update({'id': int(r['$set']['id'])}, r, upsert=True)
+        #client['zhihu']['answers'].remove({'id': r['id']})
+        #client['zhihu']['answers'].remove({'id': int(r['id'])})
+        #client['zhihu']['answers'].insert(r)
     #bulk.execute()
     print '[{0}] complete, {1} answers updated.'.format(qid, len(upvotes))
 
