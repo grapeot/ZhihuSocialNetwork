@@ -7,7 +7,7 @@ from pymongo import MongoClient
 def crawlTimeline(userid):
     """ Crawl the timeline of the user, and store the result in mongodb. """
     apiurl = 'http://www.zhihu.com/people/{0}/activities'.format(userid)
-    params = 'start={0}&_xsrf=c4b07884cfea379e46cdcb89fcf08cc4'
+    params = 'start={0}&_xsrf=c525779c61b41a113caf5fd60067ec73'
     timestamp = int(time.time())
     mongoToWrite = []
 
@@ -18,17 +18,24 @@ def crawlTimeline(userid):
     user = users.find_one({'name': userid})
     if 'likes' not in user:
         user.update({'likes': []})
-    latestTimestamp = max([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else timestamp
-    latestTimestamp2 = min([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else timestamp
+    latestTimestamp = max([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else 0
+    latestTimestamp2 = min([int(x['timestamp']) for x in user['likes']]) if len(user['likes']) != 0 else 0
 
     oldTimestamp = 0
+    answers = None
     while True:
+        content = ''
         try:
-            content = util.postZhihu(apiurl, params.format(timestamp), includeCookie=False)
+            thisParam = params.format(timestamp)
+            content = util.postZhihu(apiurl, thisParam)
         except:
             break
+        if re.search('<title>403: Forbidden', content):
+            sys.stderr.write('Error: 403')
+            sys.exit(-1)
         content = json.loads(content)
         content['msg'][1] = content['msg'][1].encode('utf-8')
+        answers = ''
         answers = re.findall(r'data-time="(\d+)"[^>]*>\s*<span[^>]*>[^<]*</span>\s*<div[^>]*>[^<]*<a[^>]*>[^<]*</a>[^<]*<a class="question_link" target="_blank" href="/question/(\d+)/answer/(\d+)">', content['msg'][1])
         if len(answers) == 0:
             # the "not shown to users outside zhihu" has been toggled
@@ -40,6 +47,7 @@ def crawlTimeline(userid):
         earliestTimestamp = min([int(x['timestamp']) for x in mongoToWrite]) if len(mongoToWrite) > 0 else 0
         #print 'ts = ', timestamp, ' oldts = ', oldTimestamp, ' latest = ', latestTimestamp, ' earlest = ', earliestTimestamp
         if remainingMsgNum == 0:
+            #print 'break because of remainingMsgNum = 0'
             break
         if earliestTimestamp < latestTimestamp:
             print '[{0}] early termination at {1}'.format(userid, latestTimestamp)
@@ -48,11 +56,13 @@ def crawlTimeline(userid):
             timestamp = latestTimestamp2
             latestTimestamp = 0
             if oldTimestamp == timestamp:
+                #print 'break because oldTimestamp == timestamp (== {0})'.format(timestamp)
                 break
             continue
         oldTimestamp = timestamp
         timestamp = int(re.findall('data-time="([^"]*)"', content['msg'][1])[-1])
         if oldTimestamp == timestamp:
+            #print 'break because oldTimestamp == timestamp (== {0})'.format(timestamp)
             break
         sys.stdout.write('.')
         sys.stdout.flush()
