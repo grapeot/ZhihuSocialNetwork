@@ -7,7 +7,7 @@ from pymongo import MongoClient
 def crawlTimeline(userid):
     """ Crawl the timeline of the user, and store the result in mongodb. """
     apiurl = 'http://www.zhihu.com/people/{0}/activities'.format(userid)
-    params = 'start={0}&_xsrf=c525779c61b41a113caf5fd60067ec73'
+    params = 'start={0}&_xsrf=acbf6400c44e8fd76b2695ab83e36145'
     timestamp = int(time.time())
     mongoToWrite = []
 
@@ -27,7 +27,7 @@ def crawlTimeline(userid):
         content = ''
         try:
             thisParam = params.format(timestamp)
-            content = util.postZhihu(apiurl, thisParam)
+            content = util.postZhihu(apiurl, thisParam, False)
         except:
             break
         if re.search('<title>403: Forbidden', content):
