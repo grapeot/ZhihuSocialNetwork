@@ -1,0 +1,24 @@
+body
+{
+    background: #eeeeee;
+    text-align: center;
+}
+#body
+{
+    background: #ffffff;
+    text-align: left;
+    padding: 15px;
+    border: solid 1px #cccccc;
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+}
+.smallLink
+{
+    font-size: 0.8em;
+}
+.contentItem
+{
+    margin-left: 10px;
+}
