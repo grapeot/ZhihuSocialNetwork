@@ -1,12 +1,13 @@
 from pymongo import MongoClient
-import pytz
-import numpy as np
-import matplotlib.pyplot as pp
-import scipy.stats
-from datetime import datetime
+from collections import Counter
 import sys
 
-def generateJadeForTimeline(user):
+def generateHoursFigure(user):
+    import pytz
+    import numpy as np
+    import matplotlib.pyplot as pp
+    import scipy.stats
+    from datetime import datetime
     # fetch information from the mongodb
     client = MongoClient()
     likes = client['zhihu']['users'].find_one({'name': user}, {'likes': 1})
@@ -29,13 +30,22 @@ def generateJadeForTimeline(user):
     pp.savefig('{0}_timeline.png'.format(user), bbox='tight')
     return xs, ys
 
+def findFavTopics(userid):
+    client = MongoClient()
+    user = client['zhihu']['users'].find_one({'name': userid}, {'likes': 1})
+    # assume we already find a user
+    qids = set([x['qid'] for x in user['likes']])
+    topicIds = [x for qid in qids for x in client['zhihu']['questions'].find_one({'id': qid})['topicIds']]
+    hist = Counter(topicIds)
+    topicIds = hist.most_common(5)
+    return [(x[0], x[1], client['zhihu']['topics'].find_one({'id': x[0]})['title']) for x in topicIds]
+
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print """Usage: {0} <userid>
-Generate a jade file for the basic information of the given zhihu user id, and print it to stdout
-Example: python {0} grapeot
-""".format(sys.argv[0])
+    if 2 != len(sys.argv):
+        sys.stderr.write("""Usage: {0} <userid>
+Output the title of favorite topics of the users.
+""".format(sys.argv[0]))
         sys.exit(-1)
 
-    xs, ys = generateJadeForTimeline(sys.argv[1])
-    sys.stdout.write('.')
+    for topic in findFavTopics(sys.argv[1]):
+        print topic[0], topic[1], topic[2].encode('utf-8')
