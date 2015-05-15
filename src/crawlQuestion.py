@@ -15,26 +15,32 @@ def crawlQuestion(qid):
     #file('sb.txt', 'w').write(content)
 
     # process the question itself
+    try:
+        title = re.search('<h2 class="zm-item-title [^"]*">([^<]*)', content).group(1).strip()
+    except:
+        client['zhihu']['failedQuestions'].update({id: qid}, {id: qid}, upsert=True)
+        sys.exit(-1)
+
     topicids = [int(x) for x in re.findall(r'"/topic/(\d+)"', content)]
     timestamp = int(time.time())
     title = re.search('<h2 class="zm-item-title [^"]*">([^<]*)', content).group(1).strip()
     topAnswerIds = [int(x) for x in re.findall(r'<a class="answer-date-link[^"]*" .*? href="/question/{0}/answer/(\d+)"'.format(qid), content)]
     visitsCount = int(re.search('"visitsCount" content="(\d+)"', content).group(1))
     # special handling of follower
-    followerNumber = int(re.search(
-        '<a href="/question/{0}/followers"><strong>(\d+)</strong></a>'.format(qid), 
-        util.getZhihu('http://www.zhihu.com/question/{0}/followers'.format(qid))
-    ).group(1))
+    #followerNumber = int(re.search(
+        #'<a href="/question/{0}/followers"><strong>(\d+)</strong></a>'.format(qid), 
+        #util.getZhihu('http://www.zhihu.com/question/{0}/followers'.format(qid))
+    #).group(1))
     toInsert = {
         'id': int(qid),
         'title': title,
         'topicIds': topicids,
         'lastCrawlTimestamp': timestamp,
         'topAnswerIds': topAnswerIds,
-        'followerNumber': followerNumber,
+        #'followerNumber': followerNumber,
         'visitsCount': visitsCount 
     }
-    client['zhihu']['questions'].update({ 'id': int(qid) }, toInsert, upsert=True)
+    client['zhihu']['questions'].update({ 'id': int(qid) }, { '$set': toInsert }, upsert=True)
 
     # process the answers
     upvotes = [int(x) for x in re.findall(r'data-votecount="(\d+)"', content)]
@@ -83,13 +89,8 @@ def crawlQuestion(qid):
         'content': answerContents[i],
         'segmented': False }
     } for i in range(len(upvotes))]
-    #bulk = client['zhihu']['answers'].initializeOrderedBulkOp()
     for r in toInsert:
         client['zhihu']['answers'].update({'id': int(r['$set']['id'])}, r, upsert=True)
-        #client['zhihu']['answers'].remove({'id': r['id']})
-        #client['zhihu']['answers'].remove({'id': int(r['id'])})
-        #client['zhihu']['answers'].insert(r)
-    #bulk.execute()
     print '[{0}] complete, {1} answers updated.'.format(qid, len(upvotes))
 
 if __name__ == '__main__':
@@ -97,6 +98,7 @@ if __name__ == '__main__':
         sys.stderr.write("""
 Usage: {0} <qid>
 Crawl zhihu to get the basic information of the question. The output will be written to mongodb.
+If the crawling fails (such as 404), the question Id will be stored in db.failedQuestions.
 
 Example usage: {0} 28339620
 """.format(sys.argv[0]))
