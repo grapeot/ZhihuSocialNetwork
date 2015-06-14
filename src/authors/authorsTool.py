@@ -35,9 +35,13 @@ def findFavTopics(userid):
     user = client['zhihu']['users'].find_one({'name': userid}, {'likes': 1})
     # assume we already find a user
     qids = set([x['qid'] for x in user['likes']])
-    topicIds = [x for qid in qids for x in client['zhihu']['questions'].find_one({'id': qid})['topicIds']]
+    topicIdLists = [client['zhihu']['questions'].find_one({'id': qid}) for qid in qids]
+    import pdb; pdb.set_trace()
+    [y for y in x['topicIds'] for x in topicIdLists if x is not None]
+    topicIds = [y for y in x['topicIds'] for x in topicIdLists if x is not None]
     hist = Counter(topicIds)
     topicIds = hist.most_common(5)
+    print topicIds
     return [(x[0], x[1], client['zhihu']['topics'].find_one({'id': x[0]})['title']) for x in topicIds]
 
 if __name__ == '__main__':

@@ -10,7 +10,8 @@ def printQuestions(days):
     setQidsFromUsers = set( [ y['qid'] for x in client['zhihu']['users'].find({'likes': {'$exists': 1}}, {'likes': 1}) for y in x['likes'] ] )
     setQidsFromTopicTopQuestions = set( [ y for x in client['zhihu']['topics'].find({'topQuestionIds': {'$exists': 1}}, {'topQuestionIds': 1}) for y in x['topQuestionIds'] ] )
     setQidsFromQuestions = set( [x['id'] for x in client['zhihu']['questions'].find({'lastCrawlTimestamp': {'$gt': targetTimeStamp} })] )
-    for qid in (setQidsFromUsers | setQidsFromTopicTopQuestions) - setQidsFromQuestions:
+    setQidsInvalid = set( [x['id'] for x in client['zhihu']['failedQuestions'].find()] )
+    for qid in (setQidsFromUsers | setQidsFromTopicTopQuestions) - setQidsFromQuestions - setQidsInvalid:
         print qid
 
 if __name__ == '__main__':

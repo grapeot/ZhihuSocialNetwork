@@ -18,8 +18,9 @@ def crawlQuestion(qid):
     try:
         title = re.search('<h2 class="zm-item-title [^"]*">([^<]*)', content).group(1).strip()
     except:
-        client['zhihu']['failedQuestions'].update({id: qid}, {id: qid}, upsert=True)
-        sys.exit(-1)
+        sys.stderr.write('[{0}] failed.\n'.format(qid))
+        client['zhihu']['failedQuestions'].update({'id': qid}, {'id': qid}, upsert=True)
+        sys.exit(0)
 
     topicids = [int(x) for x in re.findall(r'"/topic/(\d+)"', content)]
     timestamp = int(time.time())
@@ -43,9 +44,9 @@ def crawlQuestion(qid):
     client['zhihu']['questions'].update({ 'id': int(qid) }, { '$set': toInsert }, upsert=True)
 
     # process the answers
-    upvotes = [int(x) for x in re.findall(r'data-votecount="(\d+)"', content)]
+    upvotes = [int(x) for x in re.findall(r'data-helpful="(\d+)"', content)]
     dateCreateds = [int(x) for x in re.findall(r'data-created="(\d+)"', content)]
-    scores = [float(x) for x in re.findall(r'data-score="([0-9+-.]*)"', content)]
+    #scores = [float(x) for x in re.findall(r'data-score="([0-9+-.]*)"', content)]
     # special processing for the authors
     authorStarts = [x.start() for x in re.finditer(r'<h3 class="zm-item-answer-author-wrap">', content)]
     authorEnds = [x + re.search(r'</h3>', content[x:-1]).start() for x in authorStarts]
@@ -77,14 +78,14 @@ def crawlQuestion(qid):
     assert len(upvotes) == len(topAnswerIds)
     assert len(upvotes) == len(authors)
     assert len(upvotes) == len(dateCreateds)
-    assert len(upvotes) == len(scores) 
+    #assert len(upvotes) == len(scores) 
     toInsert = [{ '$set': {
         'id': int(topAnswerIds[i]),
         'qid': int(qid),
         'lastQuestionCrawlTimestamp': timestamp,
         'upvote': upvotes[i],
         'dateCreated': dateCreateds[i],
-        'score': scores[i],
+        #'score': scores[i],
         'author': authors[i],
         'content': answerContents[i],
         'segmented': False }
