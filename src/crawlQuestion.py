@@ -44,7 +44,7 @@ def crawlQuestion(qid):
     client['zhihu']['questions'].update({ 'id': int(qid) }, { '$set': toInsert }, upsert=True)
 
     # process the answers
-    upvotes = [int(x) for x in re.findall(r'data-helpful="(\d+)"', content)]
+    upvotes = [int(x) for x in re.findall(r'data-votecount="(\d+)"', content)]
     dateCreateds = [int(x) for x in re.findall(r'data-created="(\d+)"', content)]
     #scores = [float(x) for x in re.findall(r'data-score="([0-9+-.]*)"', content)]
     # special processing for the authors

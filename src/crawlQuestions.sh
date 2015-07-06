@@ -1,1 +1,1 @@
-python ./printQuestions.py 10 | xargs -P 15 -I{} -n 1 bash -c 'python ./crawlQuestion.py {}'
+python ./printQuestions.py 3 | xargs -P 25 -I{} -n 1 bash -c 'python ./crawlQuestion.py {}'
