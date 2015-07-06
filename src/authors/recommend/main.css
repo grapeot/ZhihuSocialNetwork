@@ -1,0 +1,44 @@
+body
+{
+    background: #eeeeee;
+    text-align: center;
+}
+#body
+{
+    background: #ffffff;
+    text-align: left;
+    padding: 15px;
+    border: solid 1px #cccccc;
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+}
+.smallLink
+{
+    font-size: 0.8em;
+}
+.contentItem
+{
+    margin-left: 10px;
+}
+#result{
+    box-shadow: 4px 4px 2px #cccccc;
+    text-align: left;
+    padding: 15px;
+    border: solid 1px #999999;
+    width: 70%;
+    min-height: 400px;
+    margin-top: 20px;
+}
+
+.topic{
+    background: #eff6fa;
+    padding: 1px 10px 0;
+    border-radius: 30px;
+    text-decoration: none;
+    margin: 0 5px 5px 0;
+    display: inline-block;
+    float: left;
+    white-space: nowrap;
+}

@@ -1,0 +1,13 @@
+<h2>感兴趣的话题</h2>
+{% for topic in topics %}
+    <span><a class="topic" href="http://zhihu.com/topic/{{topic.id}}" target="_blank">{{ topic.title }}</a></span>
+{% endfor %}
+<br />
+<h2>可能感兴趣的问题/回答</h2>
+{% for q in answerIds %}
+    <div><a class="questionPreview" href="http://zhihu.com/question/{{q.qid}}/answer/{{q.aid}}/" target="_blank">{{q.qtitle}}</a></div>
+{% endfor %}
+<h2>可能感兴趣的用户</h2>
+{% for u in users %}
+    <div><a class="user" href="http://zhihu.com/people/{{u}}/" target="_blank">{{u}}</a></div>
+{% endfor %}
